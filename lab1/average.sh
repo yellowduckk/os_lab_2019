@@ -3,11 +3,15 @@
 #echo "Кол-во параметров:" $#
 echo "Введено: $@"
 
-for param in $@
+count=0
+sum=0
+
+while read param
 do
-#echo "\$@ Parameter #$count = $param"
-sum=$(expr $sum + $param)
-count=$(( $count + 1 ))
+
+count=$(($count+1))
+sum=$(($sum+$param))
+
 done
 
 echo "Кол-во элементов: " $count
