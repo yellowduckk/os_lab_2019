@@ -41,16 +41,26 @@ int main(int argc, char **argv) {
           case 0:
             seed = atoi(optarg);
             // your code here
+            if (seed<=0){
+              printf("ERROR!!! Seed is negative number");
+              return 1;
+            }
             // error handling
             break;
           case 1:
             array_size = atoi(optarg);
-            // your code here
-            // error handling
+            if (array_size<=0){
+              printf("ERROR!!! Array_size is negative number");
+              return 1;
+            }
             break;
           case 2:
             pnum = atoi(optarg);
             // your code here
+            if (pnum<=0){
+              printf("ERROR!!! Pnum is negative number");
+              return 1;
+            }            
             // error handling
             break;
           case 3:
@@ -91,32 +101,78 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
 
+ int step=array_size/pnum;
+
+    FILE* fl;
+    int** pipefd;
+    if (with_files) {
+        fl=fopen("test.txt","w");
+    }
+    else {
+        pipefd=(int**)malloc(sizeof(int*) * pnum);
+    }
+
   for (int i = 0; i < pnum; i++) {
+    if (!with_files){
+            pipefd[i]=(int*)malloc(sizeof(int)*2);
+            if (pipe(pipefd[i])==-1) {
+                printf("Pipe Failed");
+                return 1;
+            }
+
+
+    }
+
     pid_t child_pid = fork();
-    if (child_pid >= 0) {
+    if (child_pid >= 0) {      
       // successful fork
       active_child_processes += 1;
       if (child_pid == 0) {
-        // child process
 
-        // parallel somehow
+        // child process
+        printf("Pipe was created\n");
+        struct  MinMax min_max_i;
+      
+              // parallel somehow
+        if (i!=pnum-1){
+            min_max_i=GetMinMax(array,i*step,(i+1)*step-1) ;
+        }
+        else{
+            min_max_i=GetMinMax(array,i*step,array_size) ;
+        }     
+        
 
         if (with_files) {
           // use files here
-        } else {
+          fwrite(&min_max_i.min,sizeof(int),1,fl);
+          fwrite(&min_max_i.max,sizeof(int),1,fl);
+      
+         } 
+         else {
           // use pipe here
+          write(pipefd[i][1],&min_max_i.min,sizeof(int));
+          write(pipefd[i][1],&min_max_i.max,sizeof(int));
+
+          close(pipefd[i][1]);
         }
         return 0;
       }
 
-    } else {
+     } else {
       printf("Fork failed!\n");
       return 1;
     }
   }
+  
+    if(with_files){ 
+      fclose(fl);
+      fl=fopen("test.txt","r");
+    }
+
 
   while (active_child_processes > 0) {
     // your code here
+    wait(NULL);
 
     active_child_processes -= 1;
   }
@@ -131,13 +187,34 @@ int main(int argc, char **argv) {
 
     if (with_files) {
       // read from files
+        fread(&min,sizeof(int),1,fl);
+        fread(&max,sizeof(int),1,fl);
+
     } else {
       // read from pipes
+
+     read(pipefd[i][0],&min,sizeof(int));
+     read(pipefd[i][0],&max,sizeof(int));
+
+     close(pipefd[i][0]);
+
+     free(pipefd[i]);
+
     }
 
     if (min < min_max.min) min_max.min = min;
     if (max > min_max.max) min_max.max = max;
   }
+
+  
+
+    if (with_files) {
+        fclose(fl);
+    }
+    else {
+        free(pipefd);
+    }
+
 
   struct timeval finish_time;
   gettimeofday(&finish_time, NULL);

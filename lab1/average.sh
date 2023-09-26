@@ -15,3 +15,4 @@ echo "сумма: " $sum
 let "sred=$sum/$count" 
 
 echo "Среднее арифметическое: $sred"
+#mycommand "$(< file.txt)"
