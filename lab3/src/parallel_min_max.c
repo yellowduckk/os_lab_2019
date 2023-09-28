@@ -19,7 +19,11 @@ int main(int argc, char **argv) {
   int seed = -1;
   int array_size = -1;
   int pnum = -1;
+  int by_files=0;
   bool with_files = false;
+  //printf("%d",with_files);
+  //printf("%d",argc);
+  //printf("%c",**argv);
 
   while (true) {
     int current_optind = optind ? optind : 1;
@@ -27,7 +31,7 @@ int main(int argc, char **argv) {
     static struct option options[] = {{"seed", required_argument, 0, 0},
                                       {"array_size", required_argument, 0, 0},
                                       {"pnum", required_argument, 0, 0},
-                                      {"by_files", no_argument, 0, 'f'},
+                                      {"by_files", required_argument, 0, 0},
                                       {0, 0, 0, 0}};
 
     int option_index = 0;
@@ -71,8 +75,9 @@ int main(int argc, char **argv) {
             printf("Index %d is out of options\n", option_index);
         }
         break;
-      case 'f':
+      case '1':
         with_files = true;
+        printf("%d",with_files);
         break;
 
       case '?':
@@ -94,6 +99,13 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  by_files=1;
+  printf("%d",by_files);
+  if (by_files == 1) {
+    with_files=true;
+  }
+  printf("%d",with_files);
+
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size, seed);
   int active_child_processes = 0;
@@ -105,15 +117,20 @@ int main(int argc, char **argv) {
 
     FILE* fl;
     int** pipefd;
+    printf("%d",with_files);
     if (with_files) {
-        fl=fopen("test.txt","w");
+        fl=fopen("test.txt","wb+");
+        printf("WWIIIIIIN");
     }
     else {
         pipefd=(int**)malloc(sizeof(int*) * pnum);
+        printf("%d",with_files);
+      
     }
 
   for (int i = 0; i < pnum; i++) {
     if (!with_files){
+             printf("NOOOOOO");
             pipefd[i]=(int*)malloc(sizeof(int)*2);
             if (pipe(pipefd[i])==-1) {
                 printf("Pipe Failed");
@@ -144,6 +161,7 @@ int main(int argc, char **argv) {
 
         if (with_files) {
           // use files here
+          printf("YES");
           fwrite(&min_max_i.min,sizeof(int),1,fl);
           fwrite(&min_max_i.max,sizeof(int),1,fl);
       
