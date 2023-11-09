@@ -118,4 +118,5 @@ int main(int argc, char **argv) {
   printf("Факториал %i по модулю %i равен %i.\n", k, mod, factorial_value % mod);
 
   return 0;
+  
 }
